@@ -1,0 +1,159 @@
+﻿@{
+    ViewBag.Title = "Users";
+}
+
+<h2>User List</h2>
+
+<table id="usersTable" class="display" border="1">
+    <thead>
+        <tr>
+            <th>
+                First Name
+                <br><input type="text" id="firstNameFilter" placeholder="Search First Name">
+            </th>
+            <th>
+                Last Name
+                <br><input type="text" id="lastNameFilter" placeholder="Search Last Name">
+            </th>
+            <th>
+                Email
+                <br><input type="text" id="emailFilter" placeholder="Search Email">
+            </th>
+            <th>
+                Phone
+                <br><input type="text" id="phoneFilter" placeholder="Search Phone">
+            </th>
+            <th>
+                City
+                <select id="cityFilter">
+                    <option value="">All</option>
+                </select>
+            </th>
+            <th>
+                State
+                <select id="stateFilter">
+                    <option value="">All</option>
+                </select>
+            </th>
+            <th>
+                Department
+                <select id="departmentFilter">
+                    <option value="">All</option>
+                </select>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+@section Scripts {
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.dataTables.min.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.colVis.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var table = $("#usersTable").DataTable({
+                ajax: {
+                    url: "/Home/GetList",
+                    type: "GET",
+                    datatype: "json"
+                },
+                columns: [
+                    { data: "FirstName" },
+                    { data: "LastName" },
+                    { data: "Email", render: function (data) { return '<a href="mailto:' + data + '">' + data + '</a>'; } },
+                    { data: "Phone", render: function (data) { return '<a href="tel:' + data + '">' + data + '</a>'; } },
+                    { data: "City" },
+                    { data: "State" },
+                    { data: "Department" }
+                ],
+                dom: 'Blfrtip', // Adjust dom to include 'l' for length menu
+                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]], // Customize the entries options
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdfHtml5', 'print', 'colvis'
+                ],
+                initComplete: function () {
+                    var api = this.api();
+
+                    // Populate City filter
+                    api.column(4).data().unique().sort().each(function (d) {
+                        $('#cityFilter').append('<option value="' + d + '">' + d + '</option>');
+                    });
+
+                    // Populate State filter
+                    api.column(5).data().unique().sort().each(function (d) {
+                        $('#stateFilter').append('<option value="' + d + '">' + d + '</option>');
+                    });
+
+                    // Populate Department filter
+                    api.column(6).data().unique().sort().each(function (d) {
+                        $('#departmentFilter').append('<option value="' + d + '">' + d + '</option>');
+                    });
+                }
+            });
+
+            // Cache jQuery selectors
+            var $firstNameFilter = $('#firstNameFilter');
+            var $lastNameFilter = $('#lastNameFilter');
+            var $emailFilter = $('#emailFilter');
+            var $phoneFilter = $('#phoneFilter');
+            var $cityFilter = $('#cityFilter');
+            var $stateFilter = $('#stateFilter');
+            var $departmentFilter = $('#departmentFilter');
+
+            // Dynamic search filters
+            $firstNameFilter.on('keyup change', function () {
+                table.column(0).search(this.value).draw();
+            });
+
+            $lastNameFilter.on('keyup change', function () {
+                table.column(1).search(this.value).draw();
+            });
+
+            $emailFilter.on('keyup change', function () {
+                table.column(2).search(this.value).draw();
+            });
+
+            $phoneFilter.on('keyup change', function () {
+                table.column(3).search(this.value).draw();
+            });
+
+            $cityFilter.on('change', function () {
+                table.column(4).search(this.value).draw();
+            });
+
+            $stateFilter.on('change', function () {
+                table.column(5).search(this.value).draw();
+            });
+
+            $departmentFilter.on('change', function () {
+                table.column(6).search(this.value).draw();
+            });
+
+            // Clear filter when "All" option is selected
+            $cityFilter.on('change', function () {
+                var value = $(this).val();
+                table.column(4).search(value === '' ? '' : value).draw();
+            });
+
+            $stateFilter.on('change', function () {
+                var value = $(this).val();
+                table.column(5).search(value === '' ? '' : value).draw();
+            });
+
+            $departmentFilter.on('change', function () {
+                var value = $(this).val();
+                table.column(6).search(value === '' ? '' : value).draw();
+            });
+        });
+    </script>
+}
